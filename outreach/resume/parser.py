@@ -21,7 +21,7 @@ def load_resume_profile(resume_path: Path, portfolio_path: Path | None, *, max_c
     return ResumeProfile(
         resume_text=resume_text[:max_chars],
         portfolio_text=portfolio_text[:max_chars],
-        source_paths=[path for path in [resume_path, portfolio_path] if path],
+        source_paths=[path for path in (resume_path, portfolio_path) if path],
     )
 
 
@@ -51,10 +51,7 @@ def extract_pdf_text(path: Path) -> str:
     reader = PdfReader(str(path), strict=False)
     if len(reader.pages) > MAX_PDF_PAGES:
         raise ValueError(f"PDF exceeds the {MAX_PDF_PAGES} page limit: {path}")
-    pages: list[str] = []
-    for page in reader.pages:
-        pages.append(page.extract_text() or "")
-    text = "\n".join(pages).strip()
+    text = "\n".join(page.extract_text() or "" for page in reader.pages).strip()
     if not text:
         raise ValueError(f"No text could be extracted from PDF: {path}")
     return text

@@ -19,6 +19,7 @@ ROBOTS_USER_AGENT = "AIJobOutreachBot"
 USER_AGENT = f"{ROBOTS_USER_AGENT}/1.0 respectful-contact-research"
 MAX_REDIRECTS = 3
 MAX_RESPONSE_BYTES = 1_000_000
+REDIRECT_STATUS_CODES = {301, 302, 303, 307, 308}
 MIN_TIMEOUT_SECONDS = 1.0
 MAX_TIMEOUT_SECONDS = 30.0
 MIN_PAGE_CHARS = 1_000
@@ -103,7 +104,7 @@ class ResearchClient:
         current = public_url
         for _ in range(MAX_REDIRECTS + 1):
             async with self._client.stream("GET", current.url) as response:
-                if response.status_code in {301, 302, 303, 307, 308}:
+                if response.status_code in REDIRECT_STATUS_CODES:
                     location = response.headers.get("location")
                     if not location:
                         body, warning = await _read_limited_response(response)

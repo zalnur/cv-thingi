@@ -21,7 +21,6 @@ class EmailSender:
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
-        self._validate_smtp_settings()
 
     def build_message(self, contact: Contact, generated: GeneratedEmail) -> EmailMessage:
         """Build a standards-compliant plain text email."""
@@ -59,14 +58,6 @@ class EmailSender:
         ) as smtp:
             smtp.login(self._settings.smtp_username, self._settings.smtp_password)
             smtp.send_message(message)
-
-    def _validate_smtp_settings(self) -> None:
-        host = self._settings.smtp_host.strip()
-        if not host or any(character.isspace() for character in host):
-            raise ValueError("SMTP_HOST must be a non-empty hostname without whitespace.")
-        if not 1 <= self._settings.smtp_port <= 65535:
-            raise ValueError("SMTP_PORT must be between 1 and 65535.")
-
 
 def _single_line_header(value: str) -> str:
     header = " ".join(value.strip().splitlines())

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -11,6 +12,7 @@ if TYPE_CHECKING:
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 PROMPTS_DIR = PROJECT_ROOT / "prompts"
+NEWLINE = "\n"
 
 
 def load_prompt_file(filename: str) -> str:
@@ -24,8 +26,13 @@ def load_prompt_file(filename: str) -> str:
     return text
 
 
+@lru_cache(maxsize=1)
 def system_prompt() -> str:
     return load_prompt_file("system_prompt.md")
+
+
+def _lines_or_default(values: list[str], default: str) -> str:
+    return NEWLINE.join(values) if values else default
 
 
 def build_user_prompt(
@@ -53,11 +60,11 @@ notes: {contact.notes or ""}
 </recipient>
 
 <sources>
-{chr(10).join(sources) if sources else "No fetched sources."}
+{_lines_or_default(sources, "No fetched sources.")}
 </sources>
 
 <research_warnings>
-{chr(10).join(research_warnings) if research_warnings else "None."}
+{_lines_or_default(research_warnings, "None.")}
 </research_warnings>
 
 <job_posting>

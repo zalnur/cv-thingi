@@ -73,9 +73,8 @@ def _validate_row_values(row: dict[str, str | None], *, row_number: int) -> None
 
 
 def _normalize_row(row: dict[str, str | None]) -> dict[str, object]:
-    normalized: dict[str, object] = {}
-    for key, value in row.items():
-        mapped = HEADER_MAP.get((key or "").strip().lower())
-        if mapped:
-            normalized[mapped] = (value or "").strip()
-    return normalized
+    return {
+        mapped: (value or "").strip()
+        for key, value in row.items()
+        if (mapped := HEADER_MAP.get((key or "").strip().lower()))
+    }

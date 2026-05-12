@@ -1,3 +1,5 @@
+from typing import Any, cast
+
 import pytest
 
 from outreach.ai.openai_client import OpenAIEmailGenerator
@@ -14,8 +16,8 @@ class FakeClient:
 
 @pytest.mark.asyncio
 async def test_openai_invalid_json_error_is_sanitized() -> None:
-    generator = object.__new__(OpenAIEmailGenerator)
-    generator._client = FakeClient()
+    generator = cast(OpenAIEmailGenerator, object.__new__(OpenAIEmailGenerator))
+    generator._client = cast(Any, FakeClient())
     generator._model = "test-model"
 
     with pytest.raises(ValueError) as exc_info:

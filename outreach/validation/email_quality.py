@@ -15,6 +15,8 @@ SPAM_PHRASES = {
     "revolutionary",
     "urgent",
 }
+SPAM_PATTERNS = {phrase: re.compile(rf"\b{re.escape(phrase)}\b") for phrase in SPAM_PHRASES}
+WORD_PATTERN = re.compile(r"\b[\w'-]+\b")
 
 
 def validate_generated_email(generated: GeneratedEmail, contact: Contact) -> ValidationResult:
@@ -29,11 +31,11 @@ def validate_generated_email(generated: GeneratedEmail, contact: Contact) -> Val
         errors.append("Subject must not use deceptive Re: or Fwd: prefix.")
     if len(subject) > 60:
         warnings.append("Subject is longer than 60 characters.")
-    for phrase in SPAM_PHRASES:
-        if re.search(rf"\b{re.escape(phrase)}\b", lower_text):
+    for phrase, pattern in SPAM_PATTERNS.items():
+        if pattern.search(lower_text):
             errors.append(f"Spam-like phrase detected: {phrase}")
 
-    word_count = len(re.findall(r"\b[\w'-]+\b", body))
+    word_count = len(WORD_PATTERN.findall(body))
     if word_count < 35:
         warnings.append("Body is very short; personalization may be thin.")
     if word_count > 150:
