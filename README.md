@@ -39,8 +39,14 @@ Google’s official guidance: App Passwords are 16-digit passcodes for apps/devi
 
 5. Create your real `.env` file from `.env.example`:
 
+Windows:
 ```powershell
 Copy-Item .env.example .env
+```
+
+Linux:
+```bash
+cp .env.example .env
 ```
 
 6. Fill in these values in `.env`:
@@ -58,14 +64,28 @@ For this codebase, use port `465` because [outreach/email/sender.py](</c:/Users/
 
 Then run a dry-run first:
 
+Windows:
 ```powershell
 .\.venv\Scripts\Activate.ps1
 python main.py --contacts data/contacts.csv --resume data/resume.pdf
 ```
 
+Linux:
+```bash
+source .venv/bin/activate
+python main.py --contacts data/contacts.csv --resume data/resume.pdf
+```
+
 To actually send:
 
+Windows:
 ```powershell
+python main.py --contacts data/contacts.csv --resume data/resume.pdf --send --limit 1
+```
+
+Linux:
+```bash
+source .venv/bin/activate
 python main.py --contacts data/contacts.csv --resume data/resume.pdf --send --limit 1
 ```
 
@@ -88,13 +108,27 @@ recruiting@example.com,Example Co,Technical,Alex,Backend Engineer,https://exampl
 
 Generate drafts only:
 
+Windows:
 ```powershell
+python main.py --contacts data/contacts.csv --resume data/resume.pdf --portfolio data/profile.md
+```
+
+Linux:
+```bash
+source .venv/bin/activate
 python main.py --contacts data/contacts.csv --resume data/resume.pdf --portfolio data/profile.md
 ```
 
 Send, still capped by limits:
 
+Windows:
 ```powershell
+python main.py --contacts data/contacts.csv --resume data/resume.pdf --send --limit 10
+```
+
+Linux:
+```bash
+source .venv/bin/activate
 python main.py --contacts data/contacts.csv --resume data/resume.pdf --send --limit 10
 ```
 
@@ -115,12 +149,23 @@ Outputs are written to `outputs/`. Logs are written to `logs/outreach.log`.
 
 Run the regression and security checks before sending real outreach:
 
+Windows:
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m bandit -r outreach
 .\.venv\Scripts\python.exe -m pip_audit -r requirements.txt
 .\.venv\Scripts\python.exe -m ruff check .
 .\.venv\Scripts\python.exe -m mypy outreach
+```
+
+Linux:
+```bash
+source .venv/bin/activate
+python -m pytest -q
+python -m bandit -r outreach
+python -m pip_audit -r requirements.txt
+python -m ruff check .
+python -m mypy outreach
 ```
 
 Use a secret scanner such as Gitleaks or TruffleHog before pushing changes that may include `.env`, logs, or generated drafts.
