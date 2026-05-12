@@ -82,6 +82,48 @@ Configuration loading:
 - Local artifacts: `outreach/utils/files.py` and `outreach/utils/logging.py`
   Writes JSON, `.eml`, and logs under private-permission best effort. Output and log directories default to `outputs/` and `logs/`.
 
+`system_prompt.md` is the **standing instruction manual** for OpenAI:
+- how to behave
+- what style to write in
+- what not to hallucinate
+- what JSON shape to return
+- what quality rules to follow
+
+`build_user_prompt()` is the **per-recipient data packet** for OpenAI:
+- this recipient’s email/company/name/role/tone
+- fetched job posting text
+- fetched company website text
+- your resume text
+- your portfolio text
+- source URLs and warnings
+
+They are both sent to OpenAI together here:
+
+```python
+generated = await generator.generate_email(system_prompt(), prompt)
+```
+
+In `outreach/cli.py`, `prompt` is the return value of `build_user_prompt()`.
+
+Then in `outreach/ai/openai_client.py`, they become:
+
+```python
+[
+    {"role": "system", "content": system_prompt},
+    {"role": "user", "content": user_prompt},
+]
+```
+
+So:
+
+```text
+system_prompt.md = rules
+build_user_prompt() = actual case data
+OpenAI sees both
+```
+
+It doesn’t “use” `system_prompt.md` directly because it shouldn’t. The orchestrator combines them. This keeps reusable instructions separate from dynamic per-company content.
+
 # External Services & Dependencies
 
 | Dependency | Type | Base URL/domain | Purpose | Evidence |

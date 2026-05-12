@@ -60,9 +60,9 @@ Follow the process below exactly.
 
 ---
 
-# STEP 1 — ANALYZE THE JOB DESCRIPTION
+# STEP 1 — ANALYZE THE JOB POSTING AND COMPANY CONTEXT
 
-Carefully read `job_description.md`.
+Carefully read the provided `<job_posting>`, `<company_research>`, and `<recipient>` sections.
 
 Extract and identify:
 
@@ -103,7 +103,7 @@ Do not output this analysis.
 
 # STEP 2 — ANALYZE THE CANDIDATE PROFILE
 
-Carefully read `profile.md`.
+Carefully read the provided `<resume>` and `<portfolio>` sections.
 
 Identify:
 
@@ -145,7 +145,7 @@ Do not output this analysis.
 
 # STEP 3 — MATCH THE CANDIDATE TO THE ROLE
 
-Synthesize the two documents.
+Synthesize the provided role/company context with the candidate profile.
 
 Your job is NOT to summarize the profile.
 
