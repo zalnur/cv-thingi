@@ -6,6 +6,7 @@ Dry-run is the default. Emails are not sent unless `--send` is passed.
 
 ## Setup
 
+Windows:
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -14,9 +15,25 @@ pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
+Linux:
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+cp .env.example .env
+```
+
 Optional security/development tools:
 
+Windows:
 ```powershell
+pip install -r requirements-dev.txt
+```
+
+Linux:
+```bash
+source .venv/bin/activate
 pip install -r requirements-dev.txt
 ```
 
