@@ -1,0 +1,8 @@
+.venv/
+.env
+.venv-linux/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+outputs/
+logs/
