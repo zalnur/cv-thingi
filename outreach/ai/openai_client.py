@@ -65,7 +65,7 @@ class OpenAIEmailGenerator:
             payload = json.loads(raw_text)
             return GeneratedEmail.model_validate(payload)
         except (json.JSONDecodeError, ValidationError) as exc:
-            raise ValueError(f"OpenAI returned invalid email JSON: {raw_text}") from exc
+            raise ValueError("OpenAI returned invalid email JSON.") from exc
 
     @staticmethod
     def _extract_text(response: Any) -> str:

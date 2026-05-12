@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import smtplib
+import ssl
 from email.message import EmailMessage
 from email.utils import formataddr
 from pathlib import Path
@@ -12,6 +13,7 @@ from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_ex
 
 from outreach.config import Settings
 from outreach.models import Contact, GeneratedEmail
+from outreach.utils.files import write_private_bytes
 
 
 class EmailSender:
@@ -19,6 +21,7 @@ class EmailSender:
 
     def __init__(self, settings: Settings) -> None:
         self._settings = settings
+        self._validate_smtp_settings()
 
     def build_message(self, contact: Contact, generated: GeneratedEmail) -> EmailMessage:
         """Build a standards-compliant plain text email."""
@@ -27,14 +30,13 @@ class EmailSender:
         from_name = self._settings.smtp_from_name or from_email
         message["From"] = formataddr((from_name, from_email))
         message["To"] = str(contact.email)
-        message["Subject"] = generated.subject.strip()
+        message["Subject"] = _single_line_header(generated.subject)
         message.set_content(generated.body.strip() + "\n")
         return message
 
     def write_eml(self, contact: Contact, generated: GeneratedEmail, path: Path) -> None:
         """Write a dry-run email file without sending."""
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(self.build_message(contact, generated).as_bytes())
+        write_private_bytes(path, self.build_message(contact, generated).as_bytes())
 
     async def send(self, contact: Contact, generated: GeneratedEmail) -> None:
         """Send email asynchronously using a thread for blocking SMTP I/O."""
@@ -48,6 +50,26 @@ class EmailSender:
         reraise=True,
     )
     def _send_blocking(self, message: EmailMessage) -> None:
-        with smtplib.SMTP_SSL(self._settings.smtp_host, self._settings.smtp_port, timeout=30) as smtp:
+        tls_context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(
+            self._settings.smtp_host,
+            self._settings.smtp_port,
+            timeout=30,
+            context=tls_context,
+        ) as smtp:
             smtp.login(self._settings.smtp_username, self._settings.smtp_password)
             smtp.send_message(message)
+
+    def _validate_smtp_settings(self) -> None:
+        host = self._settings.smtp_host.strip()
+        if not host or any(character.isspace() for character in host):
+            raise ValueError("SMTP_HOST must be a non-empty hostname without whitespace.")
+        if not 1 <= self._settings.smtp_port <= 65535:
+            raise ValueError("SMTP_PORT must be between 1 and 65535.")
+
+
+def _single_line_header(value: str) -> str:
+    header = " ".join(value.strip().splitlines())
+    if not header:
+        raise ValueError("Email subject cannot be empty.")
+    return header

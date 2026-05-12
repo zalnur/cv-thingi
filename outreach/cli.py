@@ -15,8 +15,8 @@ from outreach.prompts import build_user_prompt, system_prompt
 from outreach.research.fetcher import ResearchClient
 from outreach.resume.parser import load_resume_profile
 from outreach.utils.csv_loader import load_contacts
-from outreach.utils.files import ensure_directories, slugify
-from outreach.utils.logging import configure_logging
+from outreach.utils.files import ensure_directories, ensure_private_directory, slugify, write_private_text
+from outreach.utils.logging import configure_logging, mask_email
 from outreach.utils.rate_limit import AsyncRateLimiter
 from outreach.validation.email_quality import validate_generated_email
 
@@ -72,13 +72,13 @@ async def process_contact(
     }
     json_path = output_dir / f"{stem}.json"
     eml_path = output_dir / f"{stem}.eml"
-    json_path.write_text(json.dumps(metadata, indent=2, ensure_ascii=False), encoding="utf-8")
+    write_private_text(json_path, json.dumps(metadata, indent=2, ensure_ascii=False))
     sender.write_eml(contact, generated, eml_path)
 
     sent = False
     if send:
         if not validation.ok:
-            raise ValueError(f"Refusing to send invalid email to {contact.email}: {validation.errors}")
+            raise ValueError(f"Refusing to send invalid email to {mask_email(contact.email)}: {validation.errors}")
         await send_limiter.wait()
         await sender.send(contact, generated)
         sent = True
@@ -100,7 +100,8 @@ async def run(args: argparse.Namespace) -> int:
     if args.send:
         settings.require_smtp()
 
-    ensure_directories(settings.outputs_dir, settings.logs_dir, Path("data"))
+    ensure_directories(Path("data"))
+    ensure_private_directory(settings.outputs_dir)
     logger = configure_logging(settings.logs_dir)
     contacts = load_contacts(args.contacts)
     if args.limit:
@@ -136,12 +137,17 @@ async def run(args: argparse.Namespace) -> int:
                     skip_research=args.skip_research,
                 )
                 results.append(result)
-                logger.info("Processed %s valid=%s sent=%s", result["email"], result["valid"], result["sent"])
+                logger.info(
+                    "Processed %s valid=%s sent=%s",
+                    mask_email(result["email"]),
+                    result["valid"],
+                    result["sent"],
+                )
             except Exception:
-                logger.exception("Failed processing %s", contact.email)
+                logger.exception("Failed processing %s", mask_email(contact.email))
 
     summary_path = settings.outputs_dir / "run-summary.json"
-    summary_path.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
+    write_private_text(summary_path, json.dumps(results, indent=2, ensure_ascii=False))
     print(f"Processed {len(results)}/{len(contacts)} contacts. Summary: {summary_path}")
     if not args.send:
         print("Dry-run complete. No emails were sent.")

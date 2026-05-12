@@ -14,6 +14,12 @@ pip install -r requirements.txt
 Copy-Item .env.example .env
 ```
 
+Optional security/development tools:
+
+```powershell
+pip install -r requirements-dev.txt
+```
+
 ### Google SMTP 
 To use Gmail SMTP with this project, you need a **Gmail App Password**, not your normal Gmail password.
 
@@ -98,6 +104,23 @@ Outputs are written to `outputs/`. Logs are written to `logs/outreach.log`.
 
 - Use a Gmail App Password, not your normal Gmail password.
 - Keep `.env` private.
+- Treat `outputs/` and `logs/` as sensitive because generated drafts can contain personal profile and recipient data.
+- HTTP research is restricted to public `http` and `https` hosts; localhost, private IP ranges, link-local addresses, URL credentials, and unsafe redirects are blocked.
+- Resume/profile files are size-limited, and PDFs are page-limited to reduce denial-of-service risk from malformed inputs.
 - Respect site terms, robots.txt, and rate limits.
 - Review generated drafts before sending to real companies.
 - Automated follow-ups are intentionally not included.
+
+## Security Checks
+
+Run the regression and security checks before sending real outreach:
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m bandit -r outreach
+.\.venv\Scripts\python.exe -m pip_audit -r requirements.txt
+.\.venv\Scripts\python.exe -m ruff check .
+.\.venv\Scripts\python.exe -m mypy outreach
+```
+
+Use a secret scanner such as Gitleaks or TruffleHog before pushing changes that may include `.env`, logs, or generated drafts.

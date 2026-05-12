@@ -3,6 +3,8 @@
 .venv-linux/
 __pycache__/
 *.py[cod]
-.pytest_cache/
+.*_cache/
+.*-cache/
 outputs/
 logs/
+owasp-pysec/
